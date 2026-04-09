@@ -5,7 +5,7 @@ This repository accompanies the
 
 **Paper**
 
-[1] K. Bergermann, Deterministic sketching for Krylov subspace methods, Preprint (2026).
+[1] K. Bergermann, Deterministic sketching for Krylov subspace methods, Preprint, [arXiv:2604.07158](https://arxiv.org/abs/2604.07158) (2026).
 
 **Scripts**
 
