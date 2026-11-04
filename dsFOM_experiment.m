@@ -18,7 +18,7 @@
 addpath 'subroutines'
 
 %% Parameters
-m_max = 280; % maximum Krylov subspace dimension (multiple of 10)
+m_max = 260; % maximum Krylov subspace dimension (multiple of 10)
 m_ref = 350; % Krylov subspace dimension for reference solution
 k = 2; % truncation length in k-truncated Arnoldi [Alg. 2.1, 1]
 
@@ -114,27 +114,27 @@ for m=10:10:m_max
     % dsFOM DEIM s=m
     p = p_deim(1:m);
     I = speye(n);
-    Sd = I(p,:); % set-up deterministic sketching matrix, line 6 in [Alg. 5.1, 1]
-    [Qd,Rd] = qr(Sd * VV(:,1:m),0); % basis whitening, line 7 in [Alg. 5.1, 1]
-    fAb_dsFOM_deim = VV(:,1:m) * (Rd \ (f(Qd' * Sd * A * VV(:,1:m) / Rd) * (Qd' * (Sd * b)))); % dsFOM approximation, line 8 in [Alg. 5.1, 1]
+    Sd = I(p,:); % set-up deterministic sketching matrix, line 8 in [Alg. 5.1, 1]
+    [Qd,Rd] = qr(Sd * VV(:,1:m),0); % basis whitening, line 9 in [Alg. 5.1, 1]
+    fAb_dsFOM_deim = VV(:,1:m) * (Rd \ (f(Qd' * Sd * A * VV(:,1:m) / Rd) * (Qd' * (Sd * b)))); % dsFOM approximation, line 10 in [Alg. 5.1, 1]
     err_dsFOM_deim(m) = norm(fAb_dsFOM_deim - fAb);
     cond_dsFOM_deim(m) = cond(VV(:,1:m) / Rd);
     
     % dsFOM MPE s=1.1m
     [p, ~] = fastMPE(VV(:,1:m), s_det2, p_deim(1:m), 1); % over-sample, lines 3-5 in [Alg. 5.1, 1]
     I = speye(n);
-    Sd = I(p,:); % set-up deterministic sketching matrix, line 6 in [Alg. 5.1, 1]
-    [Qd,Rd] = qr(Sd * VV(:,1:m),0); % basis whitening, line 7 in [Alg. 5.1, 1]
-    fAb_dsFOM_mpe = VV(:,1:m) * (Rd \ (f(Qd' * Sd * A * VV(:,1:m) / Rd) * (Qd' * (Sd * b)))); % dsFOM approximation, line 8 in [Alg. 5.1, 1]
+    Sd = I(p,:); % set-up deterministic sketching matrix, line 8 in [Alg. 5.1, 1]
+    [Qd,Rd] = qr(Sd * VV(:,1:m),0); % basis whitening, line 9 in [Alg. 5.1, 1]
+    fAb_dsFOM_mpe = VV(:,1:m) * (Rd \ (f(Qd' * Sd * A * VV(:,1:m) / Rd) * (Qd' * (Sd * b)))); % dsFOM approximation, line 10 in [Alg. 5.1, 1]
     err_dsFOM_mpe(m) = norm(fAb_dsFOM_mpe - fAb);
     cond_dsFOM_mpe(m) = cond(VV(:,1:m) / Rd);
     
     % dsFOM GappyPOD+E s=m+1
     p = gpode(VV(:,1:m), s_det1); % over-sample, lines 3-5 in [Alg. 5.1, 1]
     I = speye(n);
-    Sd = I(p,:); % set-up deterministic sketching matrix, line 6 in [Alg. 5.1, 1]
-    [Qd,Rd] = qr(Sd * VV(:,1:m),0); % basis whitening, line 7 in [Alg. 5.1, 1]
-    fAb_dsFOM_gpode = VV(:,1:m) * (Rd \ (f(Qd' * Sd * A * VV(:,1:m) / Rd) * (Qd' * (Sd * b)))); % dsFOM approximation, line 8 in [Alg. 5.1, 1]
+    Sd = I(p,:); % set-up deterministic sketching matrix, line 8 in [Alg. 5.1, 1]
+    [Qd,Rd] = qr(Sd * VV(:,1:m),0); % basis whitening, line 9 in [Alg. 5.1, 1]
+    fAb_dsFOM_gpode = VV(:,1:m) * (Rd \ (f(Qd' * Sd * A * VV(:,1:m) / Rd) * (Qd' * (Sd * b)))); % dsFOM approximation, line 10 in [Alg. 5.1, 1]
     err_dsFOM_gpode(m) = norm(fAb_dsFOM_gpode - fAb);
     cond_dsFOM_gpode(m) = cond(VV(:,1:m) / Rd);
     

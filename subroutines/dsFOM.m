@@ -46,10 +46,10 @@ function [fAb, err] = dsFOM(A, b, f, m, k, RSS_method, s)
     end
     
     I = speye(n);
-    Sd = I(p,:); % set-up deterministic sketching matrix, line 6 in [Alg. 5.1, 1]
+    Sd = I(p,:); % set-up deterministic sketching matrix, line 8 in [Alg. 5.1, 1]
     
-    [Qd,Rd] = qr(Sd * VV,0); % basis whitening, line 7 in [Alg. 5.1, 1]
-    fAb = VV * (Rd \ (f(Qd' * Sd * A * VV(:,1:m) / Rd) * (Qd' * (Sd * b)))); % dsFOM approximation, line 8 in [Alg. 5.1, 1]
+    [Qd,Rd] = qr(Sd * VV,0); % basis whitening, line 9 in [Alg. 5.1, 1]
+    fAb = VV * (Rd \ (f(Qd' * Sd * A * VV(:,1:m) / Rd) * (Qd' * (Sd * b)))); % dsFOM approximation, line 10 in [Alg. 5.1, 1]
     err = cond(VV(:,1:m) / Rd); % subspace embedding distortion factor [Cor. 3.2, 1]
     
 end

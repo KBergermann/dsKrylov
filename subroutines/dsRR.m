@@ -33,7 +33,7 @@ function [lamb, x, s_min, s_max] = dsRR(A, b, m, k, RSS_method, s)
         end
     end
     
-    [VV, ~] = arnoldi_k_truncated(A,b,m,k); % line 1 in [Alg. 5.3, 1]
+    [VV, ~] = arnoldi_k_truncated(A,b,m+1,k); % line 1 in [Alg. 5.3, 1]
     
     switch RSS_method
         case 'deim'
@@ -48,12 +48,12 @@ function [lamb, x, s_min, s_max] = dsRR(A, b, m, k, RSS_method, s)
     end
     
     I = speye(n);
-    Sd = I(p,:); % set-up deterministic sketching matrix, line 6 in [Alg. 5.3, 1]
+    Sd = I(p,:); % set-up deterministic sketching matrix, line 8 in [Alg. 5.3, 1]
     
-    [Qd,Rd] = qr(Sd * VV(:,1:m),0); % basis whitening, line 7 in [Alg. 5.3, 1]
-    [YY, lamb] = eig(Rd \ (Qd' * (Sd * (A * VV(:,1:m))))); % solving the m-by-m eigenvalue problem, line 8 in [Alg. 5.3, 1]
+    [Qd,Rd] = qr(Sd * VV(:,1:m),0); % basis whitening, line 9 in [Alg. 5.3, 1]
+    [YY, lamb] = eig(Rd \ (Qd' * (Sd * (A * VV(:,1:m))))); % solving the m-by-m eigenvalue problem, line 10 in [Alg. 5.3, 1]
     x = VV(:,1:m) * YY;
-    x = x ./ vecnorm(x); % compute normalized eigenvector approximations, line 9 in [Alg. 5.3, 1]
+    x = x ./ vecnorm(x); % compute normalized eigenvector approximations, line 11 in [Alg. 5.3, 1]
 
     dsRR_sv_mpe = svd(VV(:,1:m) / Rd);
     s_min = min(dsRR_sv_mpe); % sigma_min(V_mR_m^{-1}) as lower bound

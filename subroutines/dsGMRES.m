@@ -37,7 +37,7 @@ function [x, r, err] = dsGMRES(A, b, m, x0, k, RSS_method, s)
     
     r = b - A * x0; % compute initial residual, line 1 in [Alg. 5.2, 1]
 
-    [VV, MM] = arnoldi_k_truncated(A,r,m,k); % line 2 in [Alg. 5.2, 1]
+    [VV, MM] = arnoldi_k_truncated(A,r,m+1,k); % line 2 in [Alg. 5.2, 1]
     
     switch RSS_method
         case 'deim'
@@ -52,11 +52,11 @@ function [x, r, err] = dsGMRES(A, b, m, x0, k, RSS_method, s)
     end
     
     I = speye(n);
-    Sd = I(p,:); % set-up deterministic sketching matrix, line 7 in [Alg. 5.2, 1]
+    Sd = I(p,:); % set-up deterministic sketching matrix, line 9 in [Alg. 5.2, 1]
     
     g = Sd * r; % sketched residual
-    [Qd,Rd] = qr(Sd * MM,0); % QR decomposition, line 8 in [Alg. 5.2, 1]
-    x = x0 + VV * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 9+10 in [Alg. 5.2, 1]
+    [Qd,Rd] = qr(Sd * MM(:,1:m),0); % QR decomposition, line 10 in [Alg. 5.2, 1]
+    x = x0 + VV(:,1:m) * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 11+12 in [Alg. 5.2, 1]
     r = norm(b - A * x);
     err = cond(Sd * (VV(:,1:m) / Rd)) * cond(VV(:,1:m) / Rd); % subspace embedding distortion factor [Eq. (3.3), 1]
 

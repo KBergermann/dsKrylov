@@ -12,7 +12,7 @@
 addpath 'subroutines'
 
 %% Parameters
-m_max = 550; % maximum Krylov subspace dimension (multiple of 10)
+m_max = 520; % maximum Krylov subspace dimension (multiple of 10)
 k = 4; % truncation length in k-truncated Arnoldi [Alg. 2.1, 1]
 tol = eps; % tolerance for gmres
 
@@ -36,7 +36,7 @@ b = reshape(0.3*ones(d,d) + 256*(X.*Y.*(ones(d,d)-X).*(ones(d,d)-Y)).^2,[d^2, 1]
 %% generate non-orthogonal Krylov basis of maximum dimension
 x0 = zeros(n,1); % starting guess
 r = b - A*x0; % compute initial residual, line 1 in [Alg. 5.2, 1]
-[VV, MM] = arnoldi_k_truncated(A, r, m_max, k); % line 2 in [Alg. 5.2, 1]
+[VV, MM] = arnoldi_k_truncated(A, r, m_max+1, k); % line 2 in [Alg. 5.2, 1]
 cond(VV)
 
 %% Row subset selection with DEIM, line 3 in [Alg. 5.2, 1]
@@ -83,36 +83,36 @@ for m=m_range
     
 
     % dsGMRES DEIM s=m
-    p = p_deim(1:m);
+    p = p_deim(1:m+1);
     I = speye(n);
-    Sd = I(p,:); % set-up deterministic sketching matrix, line 7 in [Alg. 5.2, 1]
+    Sd = I(p,:); % set-up deterministic sketching matrix, line 9 in [Alg. 5.2, 1]
     g = Sd * r; % sketched residual
-    [Qd,Rd] = qr(Sd * MM(:,1:m),0); % QR decomposition, line 8 in [Alg. 5.2, 1]
-    x_dsGMRES_deim = x0 + VV(:,1:m) * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 9+10 in [Alg. 5.2, 1]
+    [Qd,Rd] = qr(Sd * MM(:,1:m),0); % QR decomposition, line 10 in [Alg. 5.2, 1]
+    x_dsGMRES_deim = x0 + VV(:,1:m) * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 11+12 in [Alg. 5.2, 1]
     res_norm_dsGMRES_deim(m) = norm(b - A * x_dsGMRES_deim);
     cond_dsGMRES_deim(m) = cond(VV(:,1:m) / Rd) * cond(Sd * (VV(:,1:m) / Rd));
     cond_dsGMRES_deim_red(m) = cond(VV(:,1:m) / Rd);
     
     
     % dsGMRES MPE s=1.1m
-    [p, ~] = fastMPE(VV(:,1:m), s_det2, p_deim(1:m), 1); % over-sample, lines 4-6 in [Alg. 5.2, 1]
+    [p, ~] = fastMPE(VV(:,1:m+1), s_det2, p_deim(1:m+1), 1); % over-sample, lines 4-6 in [Alg. 5.2, 1]
     I = speye(n);
-    Sd = I(p,:); % set-up deterministic sketching matrix, line 7 in [Alg. 5.2, 1]
+    Sd = I(p,:); % set-up deterministic sketching matrix, line 9 in [Alg. 5.2, 1]
     g = Sd * r; % sketched residual
-    [Qd,Rd] = qr(Sd * MM(:,1:m),0); % QR decomposition, line 8 in [Alg. 5.2, 1]
-    x_dsGMRES_mpe = x0 + VV(:,1:m) * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 9+10 in [Alg. 5.2, 1]
+    [Qd,Rd] = qr(Sd * MM(:,1:m),0); % QR decomposition, line 10 in [Alg. 5.2, 1]
+    x_dsGMRES_mpe = x0 + VV(:,1:m) * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 11+12 in [Alg. 5.2, 1]
     res_norm_dsGMRES_mpe(m) = norm(b - A * x_dsGMRES_mpe);
     cond_dsGMRES_mpe(m) = cond(VV(:,1:m) / Rd) * cond(Sd * (VV(:,1:m) / Rd));
     cond_dsGMRES_mpe_red(m) = cond(VV(:,1:m) / Rd);
     
     
     % dsGMRES GPODE s=m+1
-    p = gpode(VV(:,1:m), s_det1); % over-sample, lines 4-6 in [Alg. 5.2, 1]
+    p = gpode(VV(:,1:m+1), s_det1); % over-sample, lines 4-6 in [Alg. 5.2, 1]
     I = speye(n);
-    Sd = I(p,:); % set-up deterministic sketching matrix, line 7 in [Alg. 5.2, 1]
+    Sd = I(p,:); % set-up deterministic sketching matrix, line 9 in [Alg. 5.2, 1]
     g = Sd * r; % sketched residual
-    [Qd,Rd] = qr(Sd * MM(:,1:m),0); % QR decomposition, line 8 in [Alg. 5.2, 1]
-    x_dsGMRES_gpode = x0 + VV(:,1:m) * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 9+10 in [Alg. 5.2, 1]
+    [Qd,Rd] = qr(Sd * MM(:,1:m),0); % QR decomposition, line 10 in [Alg. 5.2, 1]
+    x_dsGMRES_gpode = x0 + VV(:,1:m) * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 11+12 in [Alg. 5.2, 1]
     res_norm_dsGMRES_gpode(m) = norm(b - A * x_dsGMRES_gpode);
     cond_dsGMRES_gpode(m) = cond(VV(:,1:m) / Rd)* cond(Sd * (VV(:,1:m) / Rd));
     cond_dsGMRES_gpode_red(m) = cond(VV(:,1:m) / Rd);
