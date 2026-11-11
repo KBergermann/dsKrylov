@@ -124,9 +124,9 @@ figure(1)
 scatter(diag(abs(lamb_RR)),vecnorm(L * phi_RR - phi_RR * lamb_RR),30,'kx','Linewidth',2)
 hold on
 scatter(diag(abs(lamb_sRR)),vecnorm(L * phi_sRR - phi_sRR * lamb_sRR),30,'gx','Linewidth',2)
-scatter(diag(abs(lamb_dsRR_gpode)),vecnorm(L * phi_dsRR_gpode - phi_dsRR_gpode * lamb_dsRR_gpode),30,'rx','Linewidth',2)
+scatter(diag(abs(lamb_dsRR_mpe)),vecnorm(L * phi_dsRR_mpe - phi_dsRR_mpe * lamb_dsRR_mpe),30,'cx','Linewidth',2)
 set(gca,'yscale','log')
-legend('RR','sRR s=4m','dsRR GPODE s=1.5m','Location','southeast')
+legend('RR','sRR s=4m','dsRR MPE s=1.5m','Location','southeast')
 xlabel('$|\lambda_i|$','interpreter','latex')
 ylabel('$\|Lx_i^*-\lambda_i^*x_i^*\|$','interpreter','latex')
 hold off
