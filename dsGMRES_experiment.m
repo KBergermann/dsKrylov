@@ -47,16 +47,13 @@ p_deim = deim(VV);
 res_norm_GMRES = zeros(m_max,1);
 res_norm_sGMRES = zeros(m_max,1);
 res_norm_dsGMRES_deim = zeros(m_max,1);
-res_norm_dsGMRES_mpe = zeros(m_max,1);
-res_norm_dsGMRES_gpode = zeros(m_max,1);
+res_norm_dsGMRES_qdeim = zeros(m_max,1);
 cond_sGMRES = zeros(m_max,1);
 cond_sGMRES_red = zeros(m_max,1);
 cond_dsGMRES_deim = zeros(m_max,1);
 cond_dsGMRES_deim_red = zeros(m_max,1);
-cond_dsGMRES_mpe = zeros(m_max,1);
-cond_dsGMRES_mpe_red = zeros(m_max,1);
-cond_dsGMRES_gpode = zeros(m_max,1);
-cond_dsGMRES_gpode_red = zeros(m_max,1);
+cond_dsGMRES_qdeim = zeros(m_max,1);
+cond_dsGMRES_qdeim_red = zeros(m_max,1);
 
 m_range = sort([10:10:m_max, 512:2:518]);
 
@@ -64,8 +61,6 @@ bar=waitbar(0,'Looping over m...');
 for m=m_range
     % sketch sizes
     s = 2*m;
-    s_det1 = m+1;
-    s_det2 = ceil(1.1*m);
     
     % orthogonal GMRES
     x_GMRES = gmres(A,b,m,tol,1); % plain GMRES without restarting
@@ -82,7 +77,7 @@ for m=m_range
     cond_sGMRES_red(m) = cond(VV(:,1:m) / RR);
     
 
-    % dsGMRES DEIM s=m
+    % dsGMRES DEIM s=m+1
     p = p_deim(1:m+1);
     I = speye(n);
     Sd = I(p,:); % set-up deterministic sketching matrix, line 9 in [Alg. 5.2, 1]
@@ -94,28 +89,16 @@ for m=m_range
     cond_dsGMRES_deim_red(m) = cond(VV(:,1:m) / Rd);
     
     
-    % dsGMRES MPE s=1.1m
-    [p, ~] = fastMPE(VV(:,1:m+1), s_det2, p_deim(1:m+1), 1); % over-sample, lines 4-6 in [Alg. 5.2, 1]
+    % dsGMRES Q-DEIM s=m+1
+    p = q_deim(VV(:,1:m+1));
     I = speye(n);
     Sd = I(p,:); % set-up deterministic sketching matrix, line 9 in [Alg. 5.2, 1]
     g = Sd * r; % sketched residual
     [Qd,Rd] = qr(Sd * MM(:,1:m),0); % QR decomposition, line 10 in [Alg. 5.2, 1]
-    x_dsGMRES_mpe = x0 + VV(:,1:m) * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 11+12 in [Alg. 5.2, 1]
-    res_norm_dsGMRES_mpe(m) = norm(b - A * x_dsGMRES_mpe);
-    cond_dsGMRES_mpe(m) = cond(VV(:,1:m) / Rd) * cond(Sd * (VV(:,1:m) / Rd));
-    cond_dsGMRES_mpe_red(m) = cond(VV(:,1:m) / Rd);
-    
-    
-    % dsGMRES GPODE s=m+1
-    p = gpode(VV(:,1:m+1), s_det1); % over-sample, lines 4-6 in [Alg. 5.2, 1]
-    I = speye(n);
-    Sd = I(p,:); % set-up deterministic sketching matrix, line 9 in [Alg. 5.2, 1]
-    g = Sd * r; % sketched residual
-    [Qd,Rd] = qr(Sd * MM(:,1:m),0); % QR decomposition, line 10 in [Alg. 5.2, 1]
-    x_dsGMRES_gpode = x0 + VV(:,1:m) * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 11+12 in [Alg. 5.2, 1]
-    res_norm_dsGMRES_gpode(m) = norm(b - A * x_dsGMRES_gpode);
-    cond_dsGMRES_gpode(m) = cond(VV(:,1:m) / Rd)* cond(Sd * (VV(:,1:m) / Rd));
-    cond_dsGMRES_gpode_red(m) = cond(VV(:,1:m) / Rd);
+    x_dsGMRES_qdeim = x0 + VV(:,1:m) * (Rd \ (Qd' * g)); % dsGMRES approximation, lines 11+12 in [Alg. 5.2, 1]
+    res_norm_dsGMRES_qdeim(m) = norm(b - A * x_dsGMRES_qdeim);
+    cond_dsGMRES_qdeim(m) = cond(VV(:,1:m) / Rd)* cond(Sd * (VV(:,1:m) / Rd));
+    cond_dsGMRES_qdeim_red(m) = cond(VV(:,1:m) / Rd);
     
     
     waitbar(m/m_max,bar);
@@ -128,9 +111,8 @@ semilogy(m_range,res_norm_GMRES(m_range),'k','Linewidth',2)
 hold on
 semilogy(m_range,res_norm_sGMRES(m_range),'g','Linewidth',2)
 semilogy(m_range,res_norm_dsGMRES_deim(m_range),'b','Linewidth',2)
-semilogy(m_range,res_norm_dsGMRES_mpe(m_range),'c','Linewidth',2)
-semilogy(m_range,res_norm_dsGMRES_gpode(m_range),'r','Linewidth',2)
-legend('GMRES','sGMRES, s=2m','dsGMRES, DEIM, s=m','dsGMRES, MPE, s=m+1','dsGMRES, GPODE, s=1.1m','Location','southwest')
+semilogy(m_range,res_norm_dsGMRES_qdeim(m_range),'r','Linewidth',2)
+legend('GMRES','sGMRES, s=2m','dsGMRES, DEIM, s=m+1','dsGMRES, MPE, s=1.1m','dsGMRES, Q-DEIM, s=m+1','Location','southwest')
 xlabel('m')
 ylabel('$\|(I-A)x_m^* - b\|$','interpreter','latex')
 set(gca,'fontsize',14)
@@ -147,7 +129,7 @@ semilogy(m_range,cond_sGMRES_red(m_range),'g:','Linewidth',2)
 semilogy(m_range,cond_dsGMRES_deim(m_range),'b--','Linewidth',2)
 semilogy(m_range,cond_dsGMRES_deim_red(m_range),'b:','Linewidth',2)
 hold off
-legend('GMRES','sGMRES, s=2m','dsGMRES, DEIM, s=m','sGMRES \kappa(SV_mR_m^{-1})\kappa(V_mR_m^{-1})','sGMRES \kappa(V_mR_m^{-1})','dsGMRES DEIM \kappa(SV_mR_m^{-1})\kappa(V_mR_m^{-1})','dsGMRES DEIM \kappa(V_mR_m^{-1})','Location','northwest')
+legend('GMRES','sGMRES, s=2m','dsGMRES, DEIM, s=m+1','sGMRES \kappa(SV_mR_m^{-1})\kappa(V_mR_m^{-1})','sGMRES \kappa(V_mR_m^{-1})','dsGMRES DEIM \kappa(SV_mR_m^{-1})\kappa(V_mR_m^{-1})','dsGMRES DEIM \kappa(V_mR_m^{-1})','Location','northwest')
 ylim([1e-01, 1e11])
 xlabel('m')
 ylabel('$\frac{\|(I-A)x_m^* - b\|}{\|(I-A)x_m^{GMRES} - b\|}$','interpreter','latex')
@@ -157,28 +139,13 @@ figure(3)
 semilogy(m_range,ones(length(m_range),1),'k','Linewidth',2)
 hold on
 semilogy(m_range,res_norm_sGMRES(m_range)./res_norm_GMRES(m_range),'g','Linewidth',2)
-semilogy(m_range,res_norm_dsGMRES_gpode(m_range)./res_norm_GMRES(m_range),'r','Linewidth',2)
+semilogy(m_range,res_norm_dsGMRES_qdeim(m_range)./res_norm_GMRES(m_range),'r','Linewidth',2)
 semilogy(m_range,cond_sGMRES(m_range),'g--','Linewidth',2)
 semilogy(m_range,cond_sGMRES_red(m_range),'g:','Linewidth',2)
-semilogy(m_range,cond_dsGMRES_gpode(m_range),'r--','Linewidth',2)
-semilogy(m_range,cond_dsGMRES_gpode_red(m_range),'r:','Linewidth',2)
+semilogy(m_range,cond_dsGMRES_qdeim(m_range),'r--','Linewidth',2)
+semilogy(m_range,cond_dsGMRES_qdeim_red(m_range),'r:','Linewidth',2)
 hold off
-legend('GMRES','sGMRES, s=2m','dsGMRES, GPODE, s=m+1','sGMRES \kappa(SV_mR_m^{-1})\kappa(V_mR_m^{-1})','sGMRES \kappa(V_mR_m^{-1})','dsGMRES GPODE \kappa(SV_mR_m^{-1})\kappa(V_mR_m^{-1})','dsGMRES GPODE \kappa(V_mR_m^{-1})','Location','northwest')
-xlabel('m')
-ylabel('$\frac{\|(I-A)x_m^* - b\|}{\|(I-A)x_m^{GMRES} - b\|}$','interpreter','latex')
-set(gca,'fontsize',14)
-
-figure(4)
-semilogy(m_range,ones(length(m_range),1),'k','Linewidth',2)
-hold on
-semilogy(m_range,res_norm_sGMRES(m_range)./res_norm_GMRES(m_range),'g','Linewidth',2)
-semilogy(m_range,res_norm_dsGMRES_mpe(m_range)./res_norm_GMRES(m_range),'c','Linewidth',2)
-semilogy(m_range,cond_sGMRES(m_range),'g--','Linewidth',2)
-semilogy(m_range,cond_sGMRES_red(m_range),'g:','Linewidth',2)
-semilogy(m_range,cond_dsGMRES_mpe(m_range),'c--','Linewidth',2)
-semilogy(m_range,cond_dsGMRES_mpe_red(m_range),'c:','Linewidth',2)
-hold off
-legend('GMRES','sGMRES, s=2m','dsGMRES, MPE, s=1.1m','sGMRES \kappa(SV_mR_m^{-1})\kappa(V_mR_m^{-1})','sGMRES \kappa(V_mR_m^{-1})','dsGMRES MPE \kappa(SV_mR_m^{-1})\kappa(V_mR_m^{-1})','dsGMRES MPE \kappa(V_mR_m^{-1})','Location','northwest')
+legend('GMRES','sGMRES, s=2m','dsGMRES, Q-DEIM, s=m+1','sGMRES \kappa(SV_mR_m^{-1})\kappa(V_mR_m^{-1})','sGMRES \kappa(V_mR_m^{-1})','dsGMRES Q-DEIM \kappa(SV_mR_m^{-1})\kappa(V_mR_m^{-1})','dsGMRES Q-DEIM \kappa(V_mR_m^{-1})','Location','northwest')
 xlabel('m')
 ylabel('$\frac{\|(I-A)x_m^* - b\|}{\|(I-A)x_m^{GMRES} - b\|}$','interpreter','latex')
 set(gca,'fontsize',14)
